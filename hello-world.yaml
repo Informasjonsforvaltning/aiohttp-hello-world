@@ -1,0 +1,170 @@
+openapi: 3.0.3
+info:
+  title: DCAT-AP-NO hello world service
+  description: The service validates a graph against dcat-ap-no specification
+  version: "1.0"
+  contact:
+    name: Digitaliseringsdirektoratet
+    url: "https://digdir.no"
+  license:
+    name: License of API
+    url: "http://data.norge.no/nlod/no/2.0"
+paths:
+  /validator:
+    post:
+      description: Validates RDF graph and generates a validation report
+      requestBody:
+        description: A Multipart/form-data body containing one or more of the following parts
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties: # Request parts
+                config:
+                  $ref: "#/components/schemas/Config"
+                data-graph-url:
+                  type: string
+                  format: uri
+                  description: a url pointing to the [data graph](https://www.w3.org/TR/shacl/#data-graph) on the internet
+                data-graph-file:
+                  type: string
+                  format: binary
+                  description: a file containing the [data graph](https://www.w3.org/TR/shacl/#data-graph)
+                shapes-graph-file:
+                  type: string
+                  format: binary
+                  description: a file containing one or more [SHACL-shapes](https://www.w3.org/TR/shacl/#shapes-graph) the data graph should be validated against
+                shapes-graph-url:
+                  type: string
+                  format: uri
+                  description: a url pointing to the [shapes graph](https://www.w3.org/TR/shacl/#shapes-graph) on the internet
+                ontology-graph-file:
+                  type: string
+                  format: binary
+                  description: a file containing extra ontological information. Supports owl:imports
+                ontology-graph-url:
+                  type: string
+                  format: uri
+                  description: a url pointing to a graph containing extra ontological information
+            encoding:
+              file:
+                contentType: text/turtle
+      responses:
+        "200":
+          description: OK
+          content:
+            text/turtle:
+              schema:
+                type: string
+            application/ld+json:
+              schema:
+                type: string
+            application/rdf+xml:
+              schema:
+                type: string
+  /shapes:
+    get:
+      description: returns a list of default shapes graphs the validator can execute
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GraphDescriptionCollection"
+  /shapes/{id}:
+    get:
+      description: returns the description of a shapes graph given by id
+      parameters:
+        - name: id
+          in: path
+          description: shape id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GraphDescription"
+  /ontologies:
+    get:
+      description: returns a list of default ontologies graphs the validator can use
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GraphDescriptionCollection"
+  /ontologies/{id}:
+    get:
+      description: returns the description of an ontologies graph given by id
+      parameters:
+        - name: id
+          in: path
+          description: ontologies id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GraphDescription"
+components:
+  schemas:
+    Config:
+      type: object
+      properties:
+        expand:
+          type: boolean
+          default: true
+          description: whether service should fetch remote triples referenced by input graph
+        includeExpandedTriples:
+          type: boolean
+          default: false
+          description: whether service should return remote triples referenced by input graph
+    GraphDescriptionCollection:
+      type: object
+      properties:
+        graphDescriptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/GraphDescription"
+    GraphDescription:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: generated unique id for the graph
+        name:
+          type: string
+          description: The official name of the graph
+        description:
+          type: string
+          description: A description of the graph
+        version:
+          type: string
+          description: Version of the graph
+        url:
+          type: string
+          format: uri
+          description: URL to where the graph is published
+        specificationName:
+          type: string
+          description: Name of he specification the graph enforces
+        specificationVersion:
+          type: string
+          description: Version of he specification the graph enforces
+        specificationUrl:
+          type: string
+          format: uri
+          description: URL to the specification the graph enforces

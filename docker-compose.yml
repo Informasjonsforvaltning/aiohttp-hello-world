@@ -1,0 +1,23 @@
+version: '3'
+services:
+  aiohttp-hello-world:
+    build: .
+    image: eu.gcr.io/digdir-fdk-infra/aiohttp-hello-world:test
+    ports:
+      - "8000:8000"
+    environment:
+      - CONFIG=production
+      - LOGGING_LEVEL=${LOGGING_LEVEL}
+      - DB_HOST=mongodb
+      - DB_PORT=27017
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    depends_on:
+      - mongodb
+  mongodb:
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
